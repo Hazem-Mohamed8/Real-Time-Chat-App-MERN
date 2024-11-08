@@ -6,6 +6,8 @@ import { RiEmojiStickerFill } from "react-icons/ri";
 import "./styleEmoi.css";
 import { useSelector } from "react-redux";
 import { useSocket } from "@/context/SocketContext";
+import apiClient from "@/lib/api-client";
+import { UPLOAD_FILES_MESSAGE_ROUTE } from "@/utils/constants";
 
 export default function MessageBar() {
   const emojiRef = useRef();
@@ -59,18 +61,37 @@ export default function MessageBar() {
     }
   };
 
-  // const handleFileChange = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file && socket) {
-  //     socket.emit("FileSend", {
-  //       receiver: selectedChatData._id,
-  //       sender: userInfo.id,
-  //       fileUrl: URL.createObjectURL(file),
-  //       messageType: "file",
-  //       timestamp: new Date().toString(),
-  //     });
-  //   }
-  // };
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await apiClient.post(
+        UPLOAD_FILES_MESSAGE_ROUTE,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.filePath && socket && selectedChatType === "contact") {
+        socket.emit("MessageSend", {
+          receiver: selectedChatData._id,
+          content: "",
+          sender: userInfo.id,
+          messageType: "file",
+          timestamp: new Date().toString(),
+          fileUrl: response.data.filePath,
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
 
   return (
     <div className="h-[10vh] flex justify-center items-center px-8 mb-2 gap-6">
@@ -88,12 +109,12 @@ export default function MessageBar() {
             if (e.key === "Enter") handleMessage();
           }}
         />
-        {/* <input
+        <input
           type="file"
           id="file-upload"
           className="hidden"
-          onChange={handleFileChange}
-        /> */}
+          onChange={handleFileUpload}
+        />
         <label
           htmlFor="file-upload"
           className="text-2xl text-neutral-500 cursor-pointer"
@@ -111,7 +132,7 @@ export default function MessageBar() {
             <div
               className="absolute bottom-16 right-0"
               ref={emojiRef}
-              onClick={(e) => e.stopPropagation()} // Prevent emoji picker from closing when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <EmojiPicker
                 theme="dark"

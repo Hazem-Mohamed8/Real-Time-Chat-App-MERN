@@ -34,7 +34,6 @@ export default function NewDm() {
 
   const dispatch = useDispatch();
 
-  // Function to search contacts with debounce , so that it doesn't make too many requests to the server
   const searchContacts = debounce(async (searchTerm) => {
     try {
       if (searchTerm.length > 0) {

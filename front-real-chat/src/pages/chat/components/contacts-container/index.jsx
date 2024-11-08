@@ -1,19 +1,48 @@
+import { useEffect } from "react";
 import NewDm from "./components/new-dm";
 import ProfileInfo from "./components/profile-info";
+import apiClient from "@/lib/api-client";
+import { GET_ALL_CONTACT_ROUTE } from "@/utils/constants";
+import { useDispatch, useSelector } from "react-redux";
+import { setdirectContacts } from "@/store/slices/chatSlice";
+import ContactsList from "@/components/ui/contactsList";
 
 export default function ContactsContainer() {
+  const { directContacts } = useSelector((state) => state.chat);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const getContacts = async () => {
+      try {
+        const response = await apiClient.get(GET_ALL_CONTACT_ROUTE, {
+          withCredentials: true,
+        });
+        if (response.data.contacts) {
+          dispatch(setdirectContacts(response.data.contacts));
+        }
+      } catch (error) {
+        console.error("Failed to fetch contacts:", error);
+      }
+    };
+
+    getContacts();
+  }, [dispatch]); // Add dispatch as dependency
+
   return (
     <div className="relative md:w-[35vw] lg:w-[30vw] xl:w-[20vw] bg-[#1b1c24] border-r-2 border-[#2f303b] w-full">
       <div className="pt-3">
         <Logo />
       </div>
-      <div className=" my-5">
+      <div className="my-5">
         <div className="flex justify-between items-center pr-10">
           <Title text="Direct Messages" />
           <NewDm />
         </div>
+        <div className="max-h-[38vh] overflow-y-auto no-scrollbar">
+          <ContactsList contacts={directContacts} />
+        </div>
       </div>
-      <div className=" my-5">
+      <div className="my-5">
         <div className="flex justify-between items-center pr-10">
           <Title text="Groups" />
         </div>
