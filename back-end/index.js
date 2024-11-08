@@ -31,9 +31,11 @@ mongoose
 const authRoutes = require("./routes/authRoute.js");
 const contactsRouter = require("./routes/contactsRoute.js");
 const setUpSocket = require("./socket.js");
+const messageRoutes = require("./routes/messageRoute.js");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactsRouter);
+app.use("/api/messages", messageRoutes);
 
 // Start the server
 const server = app.listen(port, () => {

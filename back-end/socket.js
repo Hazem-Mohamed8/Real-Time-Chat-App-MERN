@@ -26,7 +26,6 @@ const setUpSocket = (server) => {
 
     socket.on("MessageSend", async (data) => {
       const { receiver, sender } = data;
-      console.log(data);
 
       if (!sender || !receiver) {
         console.error("Invalid message data: sender or receiver is missing");
