@@ -22,7 +22,6 @@ const setUpSocket = (server) => {
     }
 
     userMap.set(userId, socket.id);
-    // console.log(`New client ${userId} connected: ${socket.id}`);
 
     socket.on("MessageSend", async (data) => {
       const { receiver, sender } = data;
@@ -57,7 +56,6 @@ const setUpSocket = (server) => {
       const userId = socket.handshake.query.userId;
       if (userId) {
         userMap.delete(userId);
-        console.log(`Client ${userId} disconnected: ${socket.id}`);
       }
     });
   });

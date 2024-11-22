@@ -3,16 +3,18 @@ import { useEffect, useRef, useState } from "react";
 import { GrAttachment } from "react-icons/gr";
 import { IoSend } from "react-icons/io5";
 import { RiEmojiStickerFill } from "react-icons/ri";
-import "./styleEmoi.css";
 import { useSelector } from "react-redux";
 import { useSocket } from "@/context/SocketContext";
 import apiClient from "@/lib/api-client";
 import { UPLOAD_FILES_MESSAGE_ROUTE } from "@/utils/constants";
+import { debounce } from "lodash";
 
 export default function MessageBar() {
   const emojiRef = useRef();
+
   const [message, setMessage] = useState("");
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { selectedChatType, selectedChatData } = useSelector(
     (state) => state.chat
   );
@@ -20,76 +22,90 @@ export default function MessageBar() {
   const socket = useSocket();
 
   const handleEmoji = (emoji) => {
-    setMessage((prevMessage) => prevMessage + emoji.emoji);
+    setMessage((prev) => prev + emoji.emoji);
   };
 
-  const handleTyping = () => {
-    if (socket && selectedChatType === "contact") {
-      socket.emit("UserTyping", {
-        receiver: selectedChatData._id,
-        sender: userInfo.id,
-      });
-    }
-  };
+  const emitTypingEvent = useRef(
+    debounce(() => {
+      if (socket?.connected && selectedChatType === "contact") {
+        socket.emit("UserTyping", {
+          receiver: selectedChatData._id,
+          sender: userInfo.id,
+        });
+      }
+    }, 500)
+  ).current;
 
   const handleClickOutside = (event) => {
-    if (emojiRef.current && !emojiRef.current.contains(event.target)) {
+    if (emojiRef.current && !emojiRef.current.contains(event.target))
       setEmojiOpen(false);
-    }
   };
 
   useEffect(() => {
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleMessage = async () => {
-    if (message.trim() === "") return;
-
-    if (socket && selectedChatType === "contact") {
-      socket.emit("MessageSend", {
-        receiver: selectedChatData._id,
-        content: message,
-        sender: userInfo.id,
-        messageType: "text",
-        timestamp: new Date().toString(),
-        fileUrl: undefined,
-      });
-      setMessage("");
+  const sendMessage = (content, type = "text", fileUrl) => {
+    if (!socket?.connected || !selectedChatData || !userInfo) {
+      alert("Connection or data issue. Please refresh.");
+      return;
     }
+    socket.emit("MessageSend", {
+      receiver: selectedChatData._id,
+      content,
+      sender: userInfo.id,
+      messageType: type,
+      timestamp: new Date().toString(),
+      fileUrl,
+    });
+  };
+
+  const handleMessage = () => {
+    if (!message.trim()) return;
+    sendMessage(message);
+    setMessage("");
   };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds the 5MB limit.");
+      return;
+    }
 
+    setIsUploading(true);
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+
       const response = await apiClient.post(
         UPLOAD_FILES_MESSAGE_ROUTE,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
           withCredentials: true,
         }
       );
 
-      if (response.data.filePath && socket && selectedChatType === "contact") {
-        socket.emit("MessageSend", {
-          receiver: selectedChatData._id,
-          content: "",
-          sender: userInfo.id,
-          messageType: "file",
-          timestamp: new Date().toString(),
-          fileUrl: response.data.filePath,
-        });
+      if (response.data.filePath) {
+        if (selectedChatType === "contact") {
+          socket.emit("MessageSend", {
+            receiver: selectedChatData._id,
+            content: undefined,
+            sender: userInfo.id,
+            messageType: "file",
+            timestamp: new Date().toString(),
+            fileUrl: response.data.filePath,
+          });
+        }
       }
     } catch (error) {
       console.error("Error uploading file:", error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -98,26 +114,28 @@ export default function MessageBar() {
       <div className="flex-1 flex bg-[#2a2b33] rounded-md gap-5 items-center pr-5">
         <input
           type="text"
-          className="flex-1 bg-transparent outline-none rounded-lg p-3 text-white focus:border-none focus:outline-none"
+          className="flex-1 bg-transparent outline-none rounded-lg p-3 text-white"
           placeholder="Type a message..."
           value={message}
           onChange={(e) => {
             setMessage(e.target.value);
-            handleTyping();
+            emitTypingEvent();
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleMessage();
-          }}
+          onKeyDown={(e) => e.key === "Enter" && handleMessage()}
         />
         <input
           type="file"
           id="file-upload"
           className="hidden"
           onChange={handleFileUpload}
+          disabled={isUploading}
         />
         <label
           htmlFor="file-upload"
-          className="text-2xl text-neutral-500 cursor-pointer"
+          tabIndex={0}
+          className={`text-2xl text-neutral-500 cursor-pointer ${
+            isUploading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
           <GrAttachment className="text-2xl" />
         </label>
@@ -144,8 +162,11 @@ export default function MessageBar() {
         </div>
       </div>
       <button
-        className="bg-[#8417ff] rounded-lg p-[11px] hover:bg-[#741bda] flex justify-center items-center"
+        className={`bg-[#8417ff] rounded-lg p-[11px] flex justify-center items-center ${
+          isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-[#741bda]"
+        }`}
         onClick={handleMessage}
+        disabled={isUploading}
       >
         <IoSend className="text-2xl" />
       </button>

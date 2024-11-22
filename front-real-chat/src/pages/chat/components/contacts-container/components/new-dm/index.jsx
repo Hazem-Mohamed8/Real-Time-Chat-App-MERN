@@ -105,7 +105,7 @@ export default function NewDm() {
             />
           </div>
           {loading ? (
-            <div className="flex-1 md:flex flex-col justify-center items-center">
+            <div className="flex-1 flex flex-col justify-center items-center">
               <Lottie
                 isClickToPauseDisabled={true}
                 height={100}
@@ -114,40 +114,38 @@ export default function NewDm() {
               />
             </div>
           ) : contacts.length > 0 ? (
-            <ScrollArea className="h-[250px]">
-              <div className="flex-1">
+            <ScrollArea className="flex-1 h-[250px] overflow-y-auto no-scrollbar rounded-lg mt-4">
+              <div className="space-y-2">
                 {contacts.map((contact, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between text-white p-2 border-none hover:bg-[#2c2e3b] cursor-pointer rounded-lg transition-all duration-300"
                   >
                     <div className="flex items-center">
-                      <div className="w-12 h-12 relative">
-                        <Avatar className="w-12 h-12 rounded-full overflow-hidden">
-                          {contact.image ? (
-                            <AvatarImage
-                              src={`${HOST}${contact.image}`}
-                              alt="Profile"
-                              className="w-full h-full object-cover bg-black"
-                              onError={(e) =>
-                                (e.target.src = "/fallback-avatar.png")
-                              }
-                            />
-                          ) : (
-                            <div
-                              className={`w-12 h-12 uppercase text-lg border-[1px] flex items-center justify-center rounded-full ${getColor(
-                                contact.color
-                              )}`}
-                            >
-                              {contact.firstName
-                                ? contact.firstName[0].toUpperCase()
-                                : contact.email[0].toUpperCase()}
-                            </div>
-                          )}
-                        </Avatar>
-                      </div>
+                      <Avatar className="w-12 h-12 rounded-full overflow-hidden">
+                        {contact.image ? (
+                          <AvatarImage
+                            src={`${HOST}${contact.image}`}
+                            alt="Profile"
+                            className="w-full h-full object-cover bg-black"
+                            onError={(e) =>
+                              (e.target.src = "/fallback-avatar.png")
+                            }
+                          />
+                        ) : (
+                          <div
+                            className={`w-12 h-12 uppercase text-lg border-[1px] flex items-center justify-center rounded-full ${getColor(
+                              contact.color
+                            )}`}
+                          >
+                            {contact.firstName
+                              ? contact.firstName[0].toUpperCase()
+                              : contact.email[0].toUpperCase()}
+                          </div>
+                        )}
+                      </Avatar>
                       <div className="flex flex-col">
-                        <span className="ml-4 ">
+                        <span className="ml-4">
                           {contact.firstName && contact.lastName ? (
                             <span className="text-lg font-semibold">
                               {contact.firstName} {contact.lastName}
@@ -174,7 +172,7 @@ export default function NewDm() {
               </div>
             </ScrollArea>
           ) : (
-            <div className="flex-1 md:flex flex-col justify-center items-center">
+            <div className="flex-1 flex flex-col justify-center items-center">
               <Lottie
                 isClickToPauseDisabled={true}
                 height={100}

@@ -13,14 +13,15 @@ const mongoUrl = process.env.MONGO_URL;
 app.use(express.json());
 app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.options("/uploads/*", cors());
+
 app.use(
   cors({
-    origin: [process.env.ORIGIN],
+    origin: process.env.ORIGIN,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
-
 // MongoDB Connection
 mongoose
   .connect(mongoUrl)

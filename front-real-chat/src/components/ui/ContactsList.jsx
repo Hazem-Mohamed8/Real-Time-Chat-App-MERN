@@ -33,8 +33,8 @@ export default function ContactsList({ contacts, isGroup = false }) {
               : "hover:bg-gray-700 "
           }`}
         >
-          <div className="flex gap-3 items-center">
-            <Avatar className="w-12 h-12 rounded-full overflow-hidden">
+          <div className="flex gap-3 mx-3 items-center">
+            <Avatar className="w-10 h-10 rounded-full overflow-hidden">
               {contact.image ? (
                 <AvatarImage
                   src={`${HOST}${contact.image}`}
@@ -44,7 +44,7 @@ export default function ContactsList({ contacts, isGroup = false }) {
                 />
               ) : (
                 <div
-                  className={`w-12 h-12 uppercase text-lg border-[1px] flex items-center justify-center rounded-full ${getColor(
+                  className={`w-10 h-10 uppercase text-lg border-[1px] flex items-center justify-center rounded-full ${getColor(
                     contact.color
                   )}`}
                 >
@@ -55,7 +55,7 @@ export default function ContactsList({ contacts, isGroup = false }) {
               )}
             </Avatar>
             <div className="text-white">
-              <div className="text-lg font-semibold">
+              <div className="text-[16px] font-semibold">
                 {contact.firstName} {contact.lastName}
               </div>
             </div>
