@@ -27,7 +27,6 @@ const searchContacts = async (req, res) => {
 
     res.status(200).json({ contacts });
   } catch (error) {
-    console.error("Error searching contacts:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -87,9 +86,26 @@ const getContactsForDMList = async (req, res) => {
 
     res.status(200).json({ contacts });
   } catch (error) {
-    console.error("Error retrieving DM contacts:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = { searchContacts, getContactsForDMList };
+const getAllContacts = async (req, res) => {
+  try {
+    const users = await User.find(
+      { _id: { $ne: req.userId } },
+      "firstName lastName _id  email"
+    );
+
+    const contacts = users.map((user) => ({
+      label: user.firstName ? `${user.firstName} ${user.lastName}` : user.email,
+      value: user._id,
+    }));
+
+    res.status(200).json({ contacts });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = { searchContacts, getContactsForDMList, getAllContacts };

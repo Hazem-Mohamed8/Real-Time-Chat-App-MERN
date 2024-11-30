@@ -1,7 +1,11 @@
 import { createContext, useEffect, useContext, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import io from "socket.io-client";
-import { addMessage } from "@/store/slices/chatSlice";
+import {
+  addDMMessageInList,
+  addGroupInList,
+  addMessage,
+} from "@/store/slices/chatSlice";
 import { HOST } from "@/utils/constants";
 
 const SocketContext = createContext(null);
@@ -26,9 +30,7 @@ export const SocketProvider = ({ children }) => {
       query: { userId: userInfo.id },
     });
 
-    socket.current.on("connect", () => {
-      console.log("Connected to socket server");
-    });
+    socket.current.on("connect", () => {});
 
     const handleReceiveMessage = (data) => {
       if (
@@ -37,10 +39,23 @@ export const SocketProvider = ({ children }) => {
           selectedChatData._id === data.receiver._id)
       ) {
         dispatch(addMessage(data));
+
+        dispatch(addDMMessageInList({ ...data, userId: userInfo.id }));
+      }
+    };
+
+    const handleReceiveGroupMessage = (data) => {
+      if (
+        selectedChatType === "group" &&
+        selectedChatData._id === data.groupId
+      ) {
+        dispatch(addMessage(data));
+        dispatch(addGroupInList(data));
       }
     };
 
     socket.current.on("MessageReceive", handleReceiveMessage);
+    socket.current.on("GroupMessageReceive", handleReceiveGroupMessage);
   }, [userInfo, selectedChatType, selectedChatData, dispatch]);
 
   return (

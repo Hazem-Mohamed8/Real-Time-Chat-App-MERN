@@ -2,13 +2,17 @@ import { useEffect } from "react";
 import NewDm from "./components/new-dm";
 import ProfileInfo from "./components/profile-info";
 import apiClient from "@/lib/api-client";
-import { GET_ALL_CONTACT_ROUTE } from "@/utils/constants";
+import {
+  GET_ALL_CONTACT_ROUTE,
+  GET_USER_GROUPS_ROUTE,
+} from "@/utils/constants";
 import { useDispatch, useSelector } from "react-redux";
-import { setdirectContacts } from "@/store/slices/chatSlice";
+import { setdirectContacts, setGroups } from "@/store/slices/chatSlice";
 import ContactsList from "@/components/ui/contactsList";
+import CreateGroup from "./components/create-group";
 
 export default function ContactsContainer() {
-  const { directContacts } = useSelector((state) => state.chat);
+  const { directContacts, groups } = useSelector((state) => state.chat);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -25,8 +29,22 @@ export default function ContactsContainer() {
       }
     };
 
+    const getGroups = async () => {
+      try {
+        const response = await apiClient.get(GET_USER_GROUPS_ROUTE, {
+          withCredentials: true,
+        });
+        if (response.data.groups) {
+          dispatch(setGroups(response.data.groups));
+        }
+      } catch (error) {
+        console.error("Failed to fetch contacts:", error);
+      }
+    };
+
     getContacts();
-  }, [dispatch]); // Add dispatch as dependency
+    getGroups();
+  }, [dispatch]);
 
   return (
     <div className="relative md:w-[35vw] lg:w-[30vw] xl:w-[20vw] bg-[#1b1c24] border-r-2 border-[#2f303b] w-full">
@@ -45,6 +63,10 @@ export default function ContactsContainer() {
       <div className="my-5">
         <div className="flex justify-between items-center pr-10">
           <Title text="Groups" />
+          <CreateGroup />
+        </div>
+        <div className="max-h-[38vh] overflow-y-auto no-scrollbar">
+          <ContactsList contacts={groups} />
         </div>
       </div>
       <ProfileInfo />

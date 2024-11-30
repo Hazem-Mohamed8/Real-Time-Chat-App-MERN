@@ -11,7 +11,13 @@ export const LOGOUT_ROUTE = `${AUTH_ROUTE}/logout`;
 export const CONTACTS_ROUTE = "api/contacts";
 export const SEARCH_CONTACT_ROUTE = `${CONTACTS_ROUTE}/search`;
 export const GET_ALL_CONTACT_ROUTE = `${CONTACTS_ROUTE}/get-contacts`;
+export const GET_ALL_CONTACTS_ROUTE = `${CONTACTS_ROUTE}/get-all-contacts`;
 
 export const MESSAGE_ROUTE = "api/messages";
 export const GET_MESSAGE_ROUTE = `${MESSAGE_ROUTE}/get-messages`;
 export const UPLOAD_FILES_MESSAGE_ROUTE = `${MESSAGE_ROUTE}/upload-files`;
+
+export const GROUPS_ROUTE = "api/groups";
+export const CREATE_GROUP_ROUTE = `${GROUPS_ROUTE}/create-group`;
+export const GET_USER_GROUPS_ROUTE = `${GROUPS_ROUTE}/get-user-groups`;
+export const GET_GROUP_MESSAGES_ROUTE = `${GROUPS_ROUTE}/get-group-messages`;

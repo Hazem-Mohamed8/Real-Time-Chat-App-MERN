@@ -47,18 +47,25 @@ export default function MessageBar() {
   }, []);
 
   const sendMessage = (content, type = "text", fileUrl) => {
-    if (!socket?.connected || !selectedChatData || !userInfo) {
-      alert("Connection or data issue. Please refresh.");
-      return;
+    if (selectedChatType === "contact") {
+      socket.emit("MessageSend", {
+        receiver: selectedChatData._id,
+        content,
+        sender: userInfo.id,
+        messageType: type,
+        timestamp: new Date().toString(),
+        fileUrl,
+      });
+    } else if (selectedChatType === "group") {
+      socket.emit("GroupMessageSend", {
+        groupId: selectedChatData._id,
+        content,
+        sender: userInfo.id,
+        messageType: type,
+        timestamp: new Date().toString(),
+        fileUrl,
+      });
     }
-    socket.emit("MessageSend", {
-      receiver: selectedChatData._id,
-      content,
-      sender: userInfo.id,
-      messageType: type,
-      timestamp: new Date().toString(),
-      fileUrl,
-    });
   };
 
   const handleMessage = () => {
@@ -90,17 +97,24 @@ export default function MessageBar() {
         }
       );
 
-      if (response.data.filePath) {
-        if (selectedChatType === "contact") {
-          socket.emit("MessageSend", {
-            receiver: selectedChatData._id,
-            content: undefined,
-            sender: userInfo.id,
-            messageType: "file",
-            timestamp: new Date().toString(),
-            fileUrl: response.data.filePath,
-          });
-        }
+      if (response.data.filePath && selectedChatType === "contact") {
+        socket.emit("MessageSend", {
+          receiver: selectedChatData._id,
+          content: undefined,
+          sender: userInfo.id,
+          messageType: "file",
+          timestamp: new Date().toString(),
+          fileUrl: response.data.filePath,
+        });
+      } else if (response.data.filePath && selectedChatType === "group") {
+        socket.emit("GroupMessageSend", {
+          groupId: selectedChatData._id,
+          content: undefined,
+          sender: userInfo.id,
+          messageType: "file",
+          timestamp: new Date().toString(),
+          fileUrl: response.data.filePath,
+        });
       }
     } catch (error) {
       console.error("Error uploading file:", error);
@@ -148,7 +162,7 @@ export default function MessageBar() {
           </button>
           {emojiOpen && (
             <div
-              className="absolute bottom-16 right-0"
+              className="absolute bottom-16 no-scrollbar right-0"
               ref={emojiRef}
               onClick={(e) => e.stopPropagation()}
             >

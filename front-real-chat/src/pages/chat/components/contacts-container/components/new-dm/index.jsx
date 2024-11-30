@@ -67,7 +67,6 @@ export default function NewDm() {
   }, []);
 
   const addContact = (contact) => {
-    console.log("Adding contact:", contact);
     dispatch(setSelectedChatType("contact"));
     dispatch(setSelectedChatData(contact));
 
