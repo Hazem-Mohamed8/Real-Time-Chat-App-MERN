@@ -38,7 +38,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.log("Failed to connect to MongoDB", err));
 
-// Routes (your other routes can go here)
+// Routes
 const authRoutes = require("./routes/authRoute.js");
 const contactsRouter = require("./routes/contactsRoute.js");
 const setUpSocket = require("./socket.js");
@@ -55,5 +55,5 @@ const server = app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// Setup Socket.io (if you are using it)
+// Setup Socket.io
 setUpSocket(server);
